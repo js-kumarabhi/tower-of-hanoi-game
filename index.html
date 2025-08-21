@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Tower of Hanoi – Enhanced Mobile Edition</title>
+  <style>
+    :root{
+      --bg: #0c0c0e;
+      --bg-secondary: #111115;
+      --panel: #18181d;
+      --panel-light: #1f1f26;
+      --accent: #3b82f6;
+      --accent-light: #60a5fa;
+      --accent-2: #10b981;
+      --accent-2-light: #34d399;
+      --text: #e4e4e7;
+      --text-muted: #a1a1aa;
+      --text-dim: #71717a;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --glow: #3b82f620;
+      --glow-2: #10b98120;
+      --shadow: #00000060;
+      --shadow-heavy: #000000a0;
+      --border: #27272a;
+      --border-light: #3f3f46;
+    }
+    
+    *{
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    html, body{
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    
+    body{
+      background: 
+        radial-gradient(ellipse 1200px 800px at 30% 0%, #1a1a1f 0%, transparent 60%),
+        radial-gradient(ellipse 800px 600px at 80% 100%, #16181d 0%, transparent 60%),
+        linear-gradient(135deg, var(--bg) 0%, var(--bg-secondary) 100%);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      position: relative;
+    }
+    
+    /* Animated background particles */
+    .bg-particles{
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .particle{
+      position: absolute;
+      background: var(--border-light);
+      border-radius: 50%;
+      animation: float 20s infinite linear;
+      opacity: 0.05;
+    }
+    
+    @keyframes float{
+      0%{ transform: translateY(100vh) rotate(0deg); }
+      100%{ transform: translateY(-100px) rotate(360deg); }
+    }
+    
+    header{
+      padding: 16px clamp(16px, 4vw, 32px);
+      background: linear-gradient(135deg, var(--panel)95 0%, var(--panel-light)80 100%);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 8px 32px var(--shadow);
+    }
+    
+    .header-content{
+      display: grid;
+      align-items: center;
+      gap: 16px;
+      grid-template-columns: 1fr auto;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .title-section{
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    h1{
+      font-size: clamp(20px, 4vw, 32px);
+      margin: 0;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--text) 0%, var(--text-muted) 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 20px var(--glow));
+    }
+    
+    .badges{
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .chip{
+      background: linear-gradient(135deg, var(--panel-light) 0%, var(--panel) 100%);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    
+    .controls{
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    button, select{
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 
+        0 0 0 1px var(--accent-light)40,
+        0 8px 16px var(--shadow),
+        inset 0 1px 0 #ffffff20;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    button::before{
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, #ffffff20, transparent);
+      transition: left 0.5s;
+    }
+    
+    button:hover::before{
+      left: 100%;
+    }
+    
+    button:hover{
+      transform: translateY(-2px);
+      box-shadow: 
+        0 0 0 1px var(--accent-light)60,
+        0 12px 24px var(--shadow),
+        0 0 30px var(--glow),
+        inset 0 1px 0 #ffffff30;
+    }
+    
+    button:active{
+      transform: translateY(0);
+      box-shadow: 
+        0 0 0 1px var(--accent-light)40,
+        0 4px 8px var(--shadow),
+        inset 0 1px 0 #ffffff20;
+    }
+    
+    button[disabled]{
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    
+    button.secondary{
+      background: linear-gradient(135deg, var(--panel-light) 0%, var(--panel) 100%);
+      color: var(--text);
+      box-shadow: 
+        0 0 0 1px var(--border-light),
+        0 4px 8px var(--shadow);
+    }
+    
+    button.secondary:hover{
+      background: linear-gradient(135deg, var(--panel) 0%, var(--bg-secondary) 100%);
+      box-shadow: 
+        0 0 0 1px var(--border-light),
+        0 8px 16px var(--shadow);
+    }
+    
+    select{
+      appearance: none;
+      padding-right: 40px;
+      background: linear-gradient(135deg, var(--panel-light) 0%, var(--panel) 100%);
+      color: var(--text);
+      background-image: 
+        linear-gradient(135deg, var(--panel-light) 0%, var(--panel) 100%),
+        url('data:image/svg+xml,%3Csvg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="%23f1f5f9"%3E%3Cpath d="M7 10l5 5 5-5z"/%3E%3C/svg%3E');
+      background-repeat: no-repeat;
+      background-position: 0 0, right 12px center;
+      background-size: auto, 16px;
+      box-shadow: 
+        0 0 0 1px var(--border-light),
+        0 4px 8px var(--shadow);
+    }
+    
+    .game{
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 16px clamp(16px, 4vw, 32px);
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    .hud{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .stat{
+      background: linear-gradient(135deg, var(--panel)95 0%, var(--panel-light)60 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stat::before{
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      border-radius: 16px 16px 0 0;
+    }
+    
+    .stat-label{
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .stat-value{
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .board{
+      position: relative;
+      flex: 1;
+      min-height: 450px;
+      background: linear-gradient(135deg, var(--panel)60 0%, var(--bg-secondary)95 100%);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 20px;
+      backdrop-filter: blur(20px);
+      box-shadow: 
+        0 20px 40px var(--shadow-heavy),
+        inset 0 1px 0 #ffffff05;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      overflow: hidden;
+    }
+    
+    .tower{
+      position: relative;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--panel)80 0%, var(--bg-secondary)95 100%);
+      border: 2px solid var(--border);
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+    
+    .tower::before{
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      border-radius: 18px;
+    }
+    
+    .tower.highlight{
+      border-color: var(--accent);
+      box-shadow: 
+        0 0 0 2px var(--accent)30,
+        0 0 30px var(--glow);
+    }
+    
+    .tower.highlight::before{
+      opacity: 0.05;
+    }
+    
+    .peg{
+      position: absolute;
+      bottom: 80px;
+      width: 8px;
+      height: calc(70% - 80px);
+      background: linear-gradient(135deg, var(--border-light) 0%, var(--border) 100%);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      box-shadow: 0 4px 8px var(--shadow);
+    }
+    
+    .base{
+      position: absolute;
+      bottom: 24px;
+      left: 10%;
+      right: 10%;
+      height: 16px;
+      background: linear-gradient(135deg, var(--panel-light) 0%, var(--panel) 100%);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      box-shadow: 0 4px 8px var(--shadow);
+    }
+    
+    .stack{
+      position: absolute;
+      bottom: 40px;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      gap: 4px;
+      padding: 0 12px;
+      height: calc(70% - 40px);
+    }
+    
+    .disk{
+      height: 32px;
+      border-radius: 16px;
+      font-weight: 900;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-shadow: 0 2px 4px #00000080;
+      box-shadow: 
+        0 8px 16px var(--shadow),
+        inset 0 2px 4px #ffffff20,
+        inset 0 -2px 4px #00000020;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .disk::before{
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, #ffffff30, transparent);
+      transition: left 0.6s;
+    }
+    
+    .disk:hover::before{
+      left: 100%;
+    }
+    
+    .disk.top{
+      cursor: grab;
+      box-shadow: 
+        0 0 0 2px var(--accent)40,
+        0 0 15px var(--glow),
+        0 12px 24px var(--shadow),
+        inset 0 2px 4px #ffffff10;
+      animation: pulse-glow 2s infinite;
+    }
+    
+    @keyframes pulse-glow{
+      0%, 100%{ box-shadow: 
+        0 0 0 2px var(--accent)40,
+        0 0 15px var(--glow),
+        0 12px 24px var(--shadow),
+        inset 0 2px 4px #ffffff10; }
+      50%{ box-shadow: 
+        0 0 0 2px var(--accent)60,
+        0 0 25px var(--glow),
+        0 12px 24px var(--shadow),
+        inset 0 2px 4px #ffffff15; }
+    }
+    
+    .disk.locked{
+      filter: grayscale(0.3) opacity(0.7);
+      cursor: not-allowed;
+    }
+    
+    .dragging{
+      position: fixed !important;
+      z-index: 2000 !important;
+      pointer-events: none !important;
+      transform: translate(-50%, -50%) scale(1.1) !important;
+      box-shadow: 
+        0 0 0 3px var(--accent),
+        0 0 30px var(--glow),
+        0 20px 40px var(--shadow-heavy),
+        inset 0 2px 4px #ffffff15 !important;
+      cursor: grabbing !important;
+      animation: none !important;
+    }
+    
+    .footer{
+      background: linear-gradient(135deg, var(--panel)60 0%, var(--panel-light)40 100%);
+      border-top: 1px solid var(--border);
+      padding: 20px clamp(16px, 4vw, 32px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      color: var(--text-muted);
+      font-size: 14px;
+      backdrop-filter: blur(20px);
+    }
+    
+    .help-text{
+      font-weight: 600;
+    }
+    
+    .credits{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.8;
+    }
+    
+    /* Win Modal */
+    dialog{
+      border: none;
+      border-radius: 24px;
+      padding: 0;
+      background: transparent;
+      backdrop-filter: blur(20px);
+      max-width: 400px;
+      width: 90vw;
+    }
+    
+    dialog::backdrop{
+      background: #00000060;
+      backdrop-filter: blur(8px);
+    }
+    
+    .modal-content{
+      background: linear-gradient(135deg, var(--panel) 0%, var(--panel-light) 100%);
+      border: 1px solid var(--border-light);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px var(--shadow-heavy);
+    }
+    
+    .modal-header{
+      padding: 24px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+      color: white;
+      text-align: center;
+    }
+    
+    .modal-title{
+      font-size: 24px;
+      font-weight: 900;
+      margin: 0;
+      text-shadow: 0 2px 4px #00000040;
+    }
+    
+    .modal-body{
+      padding: 24px;
+      color: var(--text);
+    }
+    
+    .win-stats{
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .win-stat{
+      text-align: center;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg) 100%);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+    }
+    
+    .win-stat-label{
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    
+    .win-stat-value{
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--text);
+    }
+    
+    .modal-actions{
+      display: flex;
+      gap: 12px;
+      padding: 24px;
+      padding-top: 0;
+    }
+    
+    .modal-actions button{
+      flex: 1;
+    }
+    
+    /* Mobile optimizations */
+    @media (max-width: 768px){
+      .header-content{
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 12px;
+      }
+      
+      .title-section{
+        justify-content: center;
+      }
+      
+      .board{
+        min-height: 400px;
+        padding: 16px;
+        gap: 12px;
+      }
+      
+      .disk{
+        height: 28px;
+        font-size: 12px;
+      }
+      
+      .peg{
+        bottom: 70px;
+        height: calc(65% - 70px);
+      }
+      
+      .stack{
+        bottom: 36px;
+        height: calc(65% - 36px);
+        gap: 2px;
+      }
+      
+      .hud{
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .footer{
+        text-align: center;
+        flex-direction: column;
+        gap: 12px;
+      }
+    }
+    
+    @media (max-width: 480px){
+      .badges{
+        display: none;
+      }
+      
+      .controls{
+        justify-content: center;
+        width: 100%;
+      }
+      
+      .controls button, .controls select{
+        padding: 10px 12px;
+        font-size: 12px;
+      }
+      
+      .board{
+        min-height: 350px;
+        padding: 12px;
+        gap: 8px;
+      }
+      
+      .disk{
+        height: 24px;
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-particles" id="particles"></div>
+  
+  <header>
+    <div class="header-content">
+      <div class="title-section">
+        <h1>🧩 Tower of Hanoi</h1>
+        <div class="badges">
+          <span class="chip">Beginner: 5 disks</span>
+          <span class="chip">Intermediate: 7 disks</span>
+          <span class="chip">Expert: 9 disks</span>
+        </div>
+      </div>
+      <div class="controls">
+        <select id="level">
+          <option value="3">Easy (3)</option>
+          <option value="4">Learning (4)</option>
+          <option value="5">Beginner (5)</option>
+          <option value="6">Moderate (6)</option>
+          <option value="7">Intermediate (7)</option>
+          <option value="8">Advanced (8)</option>
+          <option value="9">Expert (9)</option>
+          <option value="10">Master (10)</option>
+        </select>
+        <button id="newGame">New Game</button>
+        <button id="undo" class="secondary" title="Undo last move">↶ Undo</button>
+        <button id="reset" class="secondary">↺ Reset</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="game">
+    <div class="hud">
+      <div class="stat">
+        <div class="stat-label">Moves</div>
+        <div class="stat-value" id="moves">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Best Score</div>
+        <div class="stat-value" id="best">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Time</div>
+        <div class="stat-value" id="time">00:00</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Optimal</div>
+        <div class="stat-value" id="minMoves">—</div>
+      </div>
+    </div>
+
+    <div class="board" id="board" aria-label="Game board: 3 towers">
+      <div class="tower" data-index="0" role="button" aria-label="Tower 1">
+        <div class="peg"></div>
+        <div class="base"></div>
+        <div class="stack" id="stack-0"></div>
+      </div>
+      <div class="tower" data-index="1" role="button" aria-label="Tower 2">
+        <div class="peg"></div>
+        <div class="base"></div>
+        <div class="stack" id="stack-1"></div>
+      </div>
+      <div class="tower" data-index="2" role="button" aria-label="Tower 3">
+        <div class="peg"></div>
+        <div class="base"></div>
+        <div class="stack" id="stack-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="help-text">
+      💡 Drag the glowing disk to another tower. Only place smaller disks on larger ones.
+    </div>
+    <div class="credits">
+      <span>✨ Enhanced for mobile & desktop</span>
+    </div>
+  </div>
+
+  <!-- Win Modal -->
+  <dialog id="winDialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">🏆 Congratulations!</h2>
+      </div>
+      <div class="modal-body">
+        <div class="win-stats">
+          <div class="win-stat">
+            <div class="win-stat-label">Level</div>
+            <div class="win-stat-value" id="winLevel">—</div>
+          </div>
+          <div class="win-stat">
+            <div class="win-stat-label">Moves</div>
+            <div class="win-stat-value" id="winMoves">—</div>
+          </div>
+          <div class="win-stat">
+            <div class="win-stat-label">Time</div>
+            <div class="win-stat-value" id="winTime">—</div>
+          </div>
+          <div class="win-stat">
+            <div class="win-stat-label">Optimal</div>
+            <div class="win-stat-value" id="winOptimal">—</div>
+          </div>
+        </div>
+        <div style="text-align: center; color: var(--text-muted); margin-bottom: 16px;">
+          <span id="winMessage">Well done! 🎉</span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="playAgain">🎮 Play Again</button>
+        <button id="closeWin" class="secondary">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const levelSel = document.getElementById('level');
+    const movesEl = document.getElementById('moves');
+    const bestEl = document.getElementById('best');
+    const timeEl = document.getElementById('time');
+    const minMovesEl = document.getElementById('minMoves');
+    const boardEl = document.getElementById('board');
+
+    const winDialog = document.getElementById('winDialog');
+    const winLevelEl = document.getElementById('winLevel');
+    const winMovesEl = document.getElementById('winMoves');
+    const winTimeEl = document.getElementById('winTime');
+    const winOptimalEl = document.getElementById('winOptimal');
+    const winMessageEl = document.getElementById('winMessage');
+
+    const newGameBtn = document.getElementById('newGame');
+    const undoBtn = document.getElementById('undo');
+    const resetBtn = document.getElementById('reset');
+    const playAgainBtn = document.getElementById('playAgain');
+    const closeWinBtn = document.getElementById('closeWin');
+
+    let N = 5;
+    let stacks = [[],[],[]];
+    let startStacks = null;
+    let moveHistory = [];
+    let moves = 0;
+    let timer = null;
+    let elapsed = 0;
+    let started = false;
+    let dragging = null;
+
+    // Background particles
+    function createParticles(){
+      const container = document.getElementById('particles');
+      for(let i = 0; i < 15; i++){
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.width = particle.style.height = (Math.random() * 4 + 2) + 'px';
+        particle.style.animationDelay = Math.random() * 20 + 's';
+        particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+        container.appendChild(particle);
+      }
+    }
+
+    // Utilities
+    const fmtTime = s => {
+      const m = Math.floor(s/60).toString().padStart(2,'0');
+      const r = (s%60).toString().padStart(2,'0');
+      return `${m}:${r}`;
+    };
+    const optimal = n => Math.pow(2, n) - 1;
+
+    function saveBest(n, val){
+      try {
+        const key = `hanoi-best-${n}`;
+        const cur = localStorage.getItem(key);
+        if(cur===null || Number(val) < Number(cur)) localStorage.setItem(key, val);
+        bestEl.textContent = localStorage.getItem(key) ?? '—';
+      } catch(e){ bestEl.textContent = '—'; }
+    }
+    
+    function loadBest(n){
+      try { bestEl.textContent = localStorage.getItem(`hanoi-best-${n}`) ?? '—'; }
+      catch(e){ bestEl.textContent = '—'; }
+    }
+
+    function newGame(){
+      N = Number(levelSel.value);
+      stacks = [Array.from({length:N}, (_,i)=>N-i), [], []];
+      startStacks = JSON.parse(JSON.stringify(stacks));
+      moveHistory = [];
+      moves = 0; started=false; elapsed=0; 
+      clearInterval(timer); timer=null; 
+      timeEl.textContent = '00:00';
+      movesEl.textContent = '0';
+      minMovesEl.textContent = optimal(N);
+      loadBest(N);
+      render();
+    }
+
+    function reset(){
+      stacks = JSON.parse(JSON.stringify(startStacks));
+      moveHistory = [];
+      moves = 0; started=false; elapsed=0; 
+      clearInterval(timer); timer=null; 
+      timeEl.textContent = '00:00';
+      movesEl.textContent = '0';
+      render();
+    }
+
+    function undo(){
+      const prev = moveHistory.pop();
+      if(!prev) return;
+      stacks = prev.stacks;
+      moves = prev.moves;
+      movesEl.textContent = moves;
+      render();
+    }
+
+    function tick(){
+      elapsed++; timeEl.textContent = fmtTime(elapsed);
+    }
+
+    function ensureTimer(){
+      if(!started){
+        started = true; timer = setInterval(tick, 1000);
+      }
+    }
+
+    function getWinMessage(moves, optimal){
+      const ratio = moves / optimal;
+      if(moves === optimal) return "Perfect! Optimal solution! 🎯";
+      if(ratio <= 1.2) return "Excellent! Nearly optimal! ⭐";
+      if(ratio <= 1.5) return "Great job! Very efficient! 👏";
+      if(ratio <= 2.0) return "Good work! Room for improvement! 👍";
+      return "Well done! Keep practicing! 💪";
+    }
+
+    function winCheck(){
+      if(stacks[1].length===N || stacks[2].length===N){
+        clearInterval(timer); timer=null;
+        const optimalMoves = optimal(N);
+        
+        // Update win modal
+        winLevelEl.textContent = `${N} disks`;
+        winMovesEl.textContent = moves;
+        winOptimalEl.textContent = optimalMoves;
+        winTimeEl.textContent = fmtTime(elapsed);
+        winMessageEl.textContent = getWinMessage(moves, optimalMoves);
+        
+        saveBest(N, moves);
+        
+        // Show modal with animation
+        setTimeout(() => {
+          try{ 
+            if(typeof winDialog.showModal === 'function'){ 
+              winDialog.showModal(); 
+            }
+          }catch(e){}
+        }, 500);
+      }
+    }
+
+    function snapshot(){
+      moveHistory.push({ stacks: JSON.parse(JSON.stringify(stacks)), moves });
+    }
+
+    function render(){
+      for(let i=0;i<3;i++){
+        const stackEl = document.getElementById(`stack-${i}`);
+        stackEl.innerHTML = '';
+        const arr = stacks[i];
+        const maxW = 88;
+        const minW = 25;
+        
+        arr.forEach((size, idx)=>{
+          const disk = document.createElement('div');
+          disk.className = 'disk';
+          disk.dataset.size = size;
+          disk.dataset.tower = i;
+          
+          // Enhanced width calculation for better visual proportion
+          const w = minW + (size-1) * ((maxW-minW)/(Math.max(N-1, 1)));
+          disk.style.width = `${w}%`;
+          disk.textContent = size;
+          
+          // Enhanced gradient with darker, more muted colors
+          const baseHue = 220; // Blue base
+          const hueShift = (size/N) * 60; // Shift from blue to green
+          const finalHue = baseHue + hueShift;
+          const sat = 40 + (size/N) * 20; // Lower saturation for darker theme
+          const light1 = 35 + (size/N) * 15; // Much darker lightness
+          const light2 = 25 + (size/N) * 10;
+          
+          disk.style.background = `linear-gradient(135deg, 
+            hsl(${finalHue} ${sat}% ${light1}%) 0%, 
+            hsl(${finalHue} ${sat}% ${light2}%) 100%)`;
+          disk.style.borderColor = `hsl(${finalHue} ${sat}% ${light1 + 5}%)`;
+          disk.style.color = `hsl(${finalHue} ${sat}% ${Math.min(light1 + 40, 90)}%)`;
+
+          // Mark top disk
+          if(idx === arr.length-1){
+            disk.classList.add('top');
+            disk.addEventListener('pointerdown', startDrag);
+          } else {
+            disk.classList.add('locked');
+          }
+
+          stackEl.appendChild(disk);
+        });
+      }
+      
+      // Update undo button state
+      undoBtn.disabled = moveHistory.length === 0;
+    }
+
+    function startDrag(e){
+      if(dragging) return;
+      
+      const el = e.currentTarget;
+      const size = Number(el.dataset.size);
+      const fromTower = Number(el.dataset.tower);
+      
+      dragging = { el, size, fromTower, startX: e.clientX, startY: e.clientY };
+      
+      el.setPointerCapture(e.pointerId);
+      boardEl.querySelectorAll('.tower').forEach(t=>t.classList.add('highlight'));
+      
+      el.classList.add('dragging');
+      moveWithPointer(e);
+      
+      el.addEventListener('pointermove', moveWithPointer);
+      el.addEventListener('pointerup', endDrag);
+      el.addEventListener('pointercancel', cancelDrag);
+      
+      ensureTimer();
+      
+      // Haptic feedback for mobile
+      if(navigator.vibrate) navigator.vibrate(10);
+    }
+
+    function moveWithPointer(e){
+      if(!dragging) return;
+      const el = dragging.el;
+      el.style.left = `${e.clientX}px`;
+      el.style.top = `${e.clientY - 15}px`;
+    }
+
+    function towerFromPoint(x,y){
+      const els = document.elementsFromPoint(x,y);
+      for(const el of els){
+        if(el.classList && el.classList.contains('tower')) return el;
+        if(el.classList && el.classList.contains('stack')) return el.parentElement;
+        if(el.classList && el.classList.contains('peg')) return el.parentElement;
+        if(el.classList && el.classList.contains('base')) return el.parentElement;
+      }
+      return null;
+    }
+
+    function endDrag(e){
+      if(!dragging) return cancelDrag(e);
+      
+      const { el, size, fromTower } = dragging;
+      el.releasePointerCapture(e.pointerId);
+
+      const targetTowerEl = towerFromPoint(e.clientX, e.clientY);
+      boardEl.querySelectorAll('.tower').forEach(t=>t.classList.remove('highlight'));
+
+      if(!targetTowerEl){
+        cancelDrag(e); 
+        return;
+      }
+      
+      const toTower = Number(targetTowerEl.dataset.index);
+
+      // Validate move
+      const fromArr = stacks[fromTower];
+      const toArr = stacks[toTower];
+      
+      if(fromArr[fromArr.length-1] !== size){ 
+        cancelDrag(e); 
+        return; 
+      }
+      
+      const canPlace = toArr.length === 0 || toArr[toArr.length-1] > size;
+      
+      if(!canPlace){
+        // Visual feedback for invalid move
+        flash(targetTowerEl, 'var(--danger)');
+        if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        cancelDrag(e); 
+        return;
+      }
+
+      // Commit move
+      snapshot();
+      toArr.push(fromArr.pop());
+      moves++; 
+      movesEl.textContent = moves;
+      
+      // Success feedback
+      flash(targetTowerEl, 'var(--success)');
+      if(navigator.vibrate) navigator.vibrate(20);
+
+      dragging = null;
+      render();
+      winCheck();
+    }
+
+    function cancelDrag(e){
+      if(!dragging) return;
+      
+      const { el } = dragging;
+      try{ el.releasePointerCapture(e.pointerId); }catch(_){}
+      
+      boardEl.querySelectorAll('.tower').forEach(t=>t.classList.remove('highlight'));
+      dragging = null;
+      render();
+    }
+
+    function flash(towerEl, color){
+      const originalBoxShadow = towerEl.style.boxShadow;
+      towerEl.style.boxShadow = `0 0 0 3px ${color}, 0 0 30px ${color}66`;
+      setTimeout(()=>{ 
+        towerEl.style.boxShadow = originalBoxShadow; 
+      }, 300);
+    }
+
+    // Event listeners
+    newGameBtn.addEventListener('click', newGame);
+    resetBtn.addEventListener('click', reset);
+    undoBtn.addEventListener('click', undo);
+    
+    playAgainBtn.addEventListener('click', ()=>{ 
+      try{ winDialog.close(); }catch(e){}; 
+      newGame(); 
+    });
+    
+    closeWinBtn.addEventListener('click', ()=>{ 
+      try{ winDialog.close(); }catch(e){} 
+    });
+
+    levelSel.addEventListener('change', newGame);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e)=>{
+      if(!dragging) {
+        // Game shortcuts
+        if(e.key === 'n' || e.key === 'N') newGame();
+        if(e.key === 'r' || e.key === 'R') reset();
+        if(e.key === 'u' || e.key === 'U') undo();
+        return;
+      }
+      
+      // Drag shortcuts
+      if(['1','2','3'].includes(e.key)){
+        const idx = Number(e.key)-1;
+        const towerEl = document.querySelector(`.tower[data-index="${idx}"]`);
+        if(towerEl){
+          const rect = towerEl.getBoundingClientRect();
+          endDrag({ 
+            clientX: rect.left+rect.width/2, 
+            clientY: rect.top+rect.height/2, 
+            pointerId: 0, 
+            preventDefault:()=>{} 
+          });
+        }
+      }
+      
+      if(e.key==='Escape') cancelDrag({pointerId:0});
+    });
+
+    // Prevent default drag behavior on images/elements
+    document.addEventListener('dragstart', e => e.preventDefault());
+
+    // Touch improvements
+    document.addEventListener('touchmove', e => {
+      if(dragging) e.preventDefault();
+    }, { passive: false });
+
+    // Initialize
+    createParticles();
+    newGame();
+  </script>
+</body>
+</html>
